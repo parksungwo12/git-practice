@@ -1,0 +1,44 @@
+-- 게시판 예제
+
+drop table bbs_member;
+drop table bbs_reply;
+drop table bbs_board;
+drop sequence bbs_board_seq;
+drop sequence bbs_reply_seq;
+
+-- 회원정보 테이블
+create table bbs_member (
+	memberid 	varchar2(20) primary key,		--사용자아이디
+	memberpw	varchar2(100) not null,			--비밀번호
+	membername	varchar2(20) not null,			--이름
+	enabled		number(1) default 1 check (enabled in (0, 1)), --계정상태. 1:사용가능, 0:사용불가능
+	rolename	varchar2(20) default 'ROLE_USER' --사용자 구분. 'ROLE_USER':일반사용자
+);
+
+-- 게시판 테이블
+create table bbs_board (
+	boardnum	number primary key,			--글번호
+	memberid	varchar2(20) not null,		--작성자 아이디
+	title		varchar2(200) not null,		--제목
+	contents	varchar2(2000) not null,	--본문
+	inputdate	date default sysdate,		--작성일
+	category	varchar2(50),				--게시글 분류 (공지/취미/잡담)
+	hits		number default 0, 			--조회수
+	recommend	number default 0			--추천수
+);
+
+--게시글 일련번호 시퀀스
+create sequence bbs_board_seq;
+
+-- 리플 테이블
+create table bbs_reply (
+	replynum 	number primary key,			--댓글번호
+	boardnum 	number references bbs_board(boardnum),	--본문 글번호
+	memberid 	varchar2(20) not null,		--작성자 ID
+	replytext	varchar2(500) not null,		--내용
+	inputdate	date default sysdate		--작성일
+);
+
+create sequence bbs_reply_seq;
+
+

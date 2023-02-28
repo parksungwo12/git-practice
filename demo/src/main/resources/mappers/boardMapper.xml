@@ -1,0 +1,163 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.softsociety.exam.dao.BoardDAO">
+
+<!--글 저장 -->
+<insert id="insertBoard" parameterType="Board">
+	insert 
+	into 
+		bbs_board (
+			boardnum
+			, memberid
+			, title
+			, contents
+			, category
+		)
+	values (
+			bbs_board_seq.nextval
+			, #{memberid}
+			, #{title}
+			, #{contents}
+			, #{category}
+		)
+</insert>
+
+<!-- 글 읽기 -->
+<select id="selectBoard" parameterType="int" resultType="Board">
+	select 
+		*
+	from 
+		bbs_board
+	where 
+		boardnum = #{boardnum}
+</select>
+
+<!-- 초회수 1증가 -->
+<delete id="increase" parameterType="int">
+	update
+		bbs_board
+	set
+		hits = hits + 1
+	where
+		boardnum = #{boardnum}
+</delete>
+
+
+<!-- 게시글 목록 -->
+<select id="selectBoardList" parameterType="map" resultType="Board">
+	select 
+		boardnum
+		, memberid
+		, title
+		, to_char(inputdate, 'mm/dd hh:mi') inputdate
+		, category
+		, hits
+		, recommend
+	from 
+		bbs_board
+	<where>
+		<if test="category != null and category != ''">
+			category = #{category}
+		</if>
+		<if test="type != null and type != '' and searchWord != null">
+			<choose>
+				<when test="type == 'title' ">
+					upper(title) like '%' || upper(#{searchWord}) || '%'
+				</when>
+				<when test="type == 'contents' ">
+					upper(contents) like '%' || upper(#{searchWord}) || '%'
+				</when>
+				<when test="type == 'all'">
+					upper(title) like '%' || upper(#{searchWord}) || '%'
+					or upper(contents) like '%' || upper(#{searchWord}) || '%'
+				</when>
+			</choose>
+		</if>
+	</where>
+	<choose>
+		<when test="order == 'hits'">
+			order by hits desc
+		</when>
+		<when test="order == 'recommend'">
+			order by recommend desc
+		</when>
+		<otherwise>
+			order by boardnum desc
+		</otherwise>
+	</choose>
+</select>
+
+<!-- 추천수 1증가 -->
+<update id="recommend" parameterType="int">
+	update
+		bbs_board
+	set
+		recommend = recommend + 1
+	where
+		boardnum = #{boardnum}
+</update>
+
+<!-- 게시글 삭제 -->
+<delete id="deleteBoard" parameterType="Board">
+	delete
+	from
+		bbs_board
+	where
+		boardnum = #{boardnum}
+		and memberid = #{memberid}
+</delete>
+
+<!-- 글 수정 -->
+<update id="updateBoard" parameterType="Board">
+	update
+		bbs_board
+	set
+		title = #{title}
+		, contents = #{contents}
+		, category = #{category}
+	where
+		boardnum = #{boardnum}
+		and memberid = #{memberid}
+</update>
+
+<!-- 리플 저장 -->
+<insert id="insertReply" parameterType="Reply">
+	insert 
+	into
+		bbs_reply (
+			replynum
+			, boardnum
+			, memberid
+			, replytext
+		)
+	values (
+			bbs_reply_seq.nextval
+			, #{boardnum}
+			, #{memberid}
+			, #{replytext}
+	)
+</insert>
+
+<!-- 리플 목록 -->
+<select id="listReply" parameterType="int" resultType="Reply">
+	select
+		*
+	from
+		bbs_reply
+	where
+		boardnum = #{boardnum}
+</select>
+
+<!-- 리플 삭제 -->
+<delete id="deleteReply" parameterType="Reply">
+	delete
+	from
+		bbs_reply
+	where
+		replynum = #{replynum}
+		and memberid = #{memberid}
+</delete>
+
+</mapper>
